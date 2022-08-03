@@ -28,8 +28,9 @@ class NeuralNetwork:
         self.weight = weight
 
     @classmethod
-    def set_some_gene(cls, gene):
+    def set_some_gene(cls, gene) -> str:
         gene = cls.some_gene
+        return gene
 
     @classmethod
     def forward_propagation(cls, weight, bias) -> []:
@@ -63,11 +64,37 @@ class NeuralNetwork:
             cls.set_some_gene(gene=z)
             return z
 
-    def encode_mrna(self, mrna):
-        mrna = self.some_mrna
+    def encode_mrna(self, some_mrna) -> [bytearray]:
+        some_mrna = self.some_mrna
+
+        # Assign each base a bit of information
+
+        a = [0, 0]
+        u = [0, 1]
+        g = [1, 0]
+        c = [1, 1]
+
+        bases: dict = {
+            "A": a,
+            "U": u,
+            "G": g,
+            "C": c,
+        }
+
+        z = [bytearray]
+
+        #  for each of the letters in the genetic sequence...
+        for x in some_mrna:
+            if bases.keys().__contains__(x):
+                z.append(bases[x])
+                print(bases[x])
+            print(z)
+            return z
+
 
     def encode_protein(self, protein):
         protein = self.some_protein
+
 
     @classmethod
     def predict_disease(cls, weight, bias, some_gene) -> list:
