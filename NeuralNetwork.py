@@ -1,3 +1,4 @@
+import matplotlib.backend_managers
 import matplotlib.pyplot as plot
 import numpy
 from Bio.codonalign import codonseq, CodonSeq
@@ -11,14 +12,15 @@ Entrez.email = "c.kupris@yahoo.com"
 class NeuralNetwork:
 
     bias: float
-    disease: str
+    disease: float
     iterations: int
     some_gene: list[bytearray]
     some_mrna: str
     some_protein: str
-    target: str
+    target: float
     weight: float
 
+    matplotlib.use("pdf")
 
     def __init__(self, bias: float, iterations: int, weight: float):
         # define weights and biases
@@ -281,7 +283,7 @@ class NeuralNetwork:
                 return 0
 
     @classmethod
-    def search(cls, disease: str):
+    def search(cls, disease: float):
         handle = Entrez.esearch(db='pubmed', term=disease)
         cls.disease = disease
         cls.target = disease
@@ -384,14 +386,19 @@ class NeuralNetwork:
 
         neural_network = NeuralNetwork(bias=0.02, iterations=1000, weight=0.05)
 
+        numpy.random.seed(100)
+
+        plot.figure()
+
         x = neural_network.iterations
         print(x)
         plot.xlabel = "Iterations"
         plot.xscale = 1
         plot.xticks(ticks=numpy.arrange(1, 2, step=1))
 
-        y = neural_network.layer_3(bias=neural_network.bias, weight=neural_network.weight)
+        y = neural_network.target
         print(y)
+
         plot.ylabel = "Target"
         plot.yscale = 1
         plot.yticks(ticks=numpy.arrange(0, 1, step=0.1))
@@ -403,5 +410,7 @@ class NeuralNetwork:
         legend.loc = 3
 
         plot.title = "Neural Network Target as a Function of Iterations"
+
         plot.plot(x, y)
-        plot.show()
+
+        plot.savefig("Iterations_vs_Target.pdf")
