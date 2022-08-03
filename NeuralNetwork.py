@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plot
 import numpy
+from Bio.codonalign import codonseq, CodonSeq
 from Bio import Entrez
 from Bio import SeqIO
 
@@ -12,7 +13,7 @@ class NeuralNetwork:
     bias: float
     disease: str
     iterations: int
-    some_gene: str
+    some_gene: list[bytearray]
     some_mrna: str
     some_protein: str
     target: str
@@ -28,8 +29,8 @@ class NeuralNetwork:
         self.weight = weight
 
     @classmethod
-    def set_some_gene(cls, gene: str) -> str:
-        gene = cls.some_gene
+    def set_some_gene(cls, gene: list[bytearray]) -> list[bytearray]:
+        cls.some_gene = gene
         return gene
 
     @classmethod
@@ -65,7 +66,7 @@ class NeuralNetwork:
             return z
 
     def encode_mrna(self, some_mrna) -> [bytearray]:
-        some_mrna = self.some_mrna
+        self.some_mrna = some_mrna
 
         # Assign each base a bit of information
 
@@ -92,8 +93,8 @@ class NeuralNetwork:
             return z
 
 
-    def encode_protein(self, protein):
-        protein = self.some_protein
+    def encode_protein(self, protein) -> CodonSeq:
+        self.some_protein = protein
 
         # Assign each base a bit of information
 
@@ -132,17 +133,22 @@ class NeuralNetwork:
             "Tryptophan": "UGG",
             "Tyrosine": "UAC" or "UAU",
             "Valine": "GUA" or "GUC" or "GUG" or "GUU",
-            "Stop": "UAA" or "UAG" or "UGA"
+            "Start": "AUG",
+            "Stop": "UAA" or "UAG" or "UGA",
         }
 
         z = []
 
         for x in protein:
             if nucleotides.keys().__contains__(x):
-                z.append(nucleotides[x])
-                print(nucleotides[x])
+                if dictionary_of_proteins.__contains__(x):
+                    z.append(nucleotides[x])
+                    print(nucleotides[x])
             print(z)
-            return z
+            codon_seq = codonseq.CodonSeq(z)
+            return codon_seq
+
+
 
 
     @classmethod
@@ -286,6 +292,7 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein').records:
+
             for gene in SeqIO.index(filename=handle.read(), format='xml', alphabet='DNA alphabet' or
                                                'RNA alphabet' or
                                                'Protein Alphabet' or
@@ -293,12 +300,28 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein'):
+
                 Entrez.parse(handle=gene, validate=True, escape=True)
-                gene_sequence = gene.seq
-                if index.contains(gene_sequence):
+
+            for some_mrna in SeqIO.index(filename=handle.read(), format='xml', alphabet='Single Letter Alphabet' or
+                                                'Nucleotide Alphabet' or
+                                                'Secondary Structure' or
+                                                'Three Letter Protein' or
+                                                'Protein Alphabet'):
+
+                if index.contains(some_mrna):
                     cls.train()
 
+                for protein in SeqIO.index(filename=handle.read(), format='xml', alphabet='RNA alphabet' or
+                                                                                            'Single Letter Alphabet' or
+                                                                                            'Nucleotide Alphabet' or
+                                                                                            'Secondary Structure'):
+
+                    if index.contains(protein):
+                        cls.train()
+
         second_handle = Entrez.esearch(db='GenBank', term=disease)
+
         for second_gene in SeqIO.parse(handle=second_handle, format='xml', alphabet='DNA alphabet' or
                                                'RNA alphabet' or
                                                'Protein Alphabet' or
@@ -306,6 +329,7 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein'):
+
             for second_record in SeqIO.index(filename=second_handle.read(), format='xml', alphabet='DNA alphabet' or
                                                'RNA alphabet' or
                                                'Protein Alphabet' or
@@ -313,12 +337,21 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein'):
+
                 Entrez.parse(handle=second_gene, validate=True, escape=True)
                 second_gene_sequence = second_gene.seq
+
                 if second_gene_sequence.contains(second_record):
                     cls.train()
 
+                if second_gene_sequence.contains(cls.some_mrna) or second_record.contains(cls.some_mrna):
+                    cls.train()
+
+                if second_gene_sequence.contains(cls.some_protein) or second_record.contains(cls.some_protein):
+                    cls.train()
+
         third_handle = Entrez.esearch(db='NIH', term=disease)
+
         for third_gene in SeqIO.parse(handle=third_handle,
                                       format='xml',
                                       alphabet='DNA alphabet' or
@@ -328,6 +361,7 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein'):
+
             for third_record in SeqIO.index(format='xml', filename='xml', alphabet='DNA alphabet' or
                                                'RNA alphabet' or
                                                'Protein Alphabet' or
@@ -335,9 +369,17 @@ class NeuralNetwork:
                                                 'Nucleotide Alphabet' or
                                                 'Secondary Structure' or
                                                 'Three Letter Protein'):
+
                 Entrez.parse(third_gene, validate=True, escape=True)
                 third_gene_sequence = third_gene.seq
+
                 if third_gene_sequence.contains(third_record):
+                    cls.train()
+
+                if third_gene_sequence.contains(cls.some_mrna):
+                    cls.train()
+
+                if third_gene_sequence.contains(cls.some_protein):
                     cls.train()
 
         neural_network = NeuralNetwork(bias=0.02, iterations=1000, weight=0.05)
