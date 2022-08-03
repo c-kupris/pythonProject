@@ -28,8 +28,9 @@ class NeuralNetwork:
         self.weight = weight
 
     @classmethod
-    def set_some_gene(cls, gene):
+    def set_some_gene(cls, gene: str) -> str:
         gene = cls.some_gene
+        return gene
 
     @classmethod
     def forward_propagation(cls, weight, bias) -> []:
@@ -45,7 +46,7 @@ class NeuralNetwork:
         g = [1, 0]
         c = [1, 1]
 
-        bases: dict = {
+        nucleotide: dict = {
             "A": a,
             "T": t,
             "G": g,
@@ -56,18 +57,93 @@ class NeuralNetwork:
 
         #  for each of the letters in the genetic sequence...
         for x in some_gene:
-            if bases.keys().__contains__(x):
-                z.append(bases[x])
-                print(bases[x])
+            if nucleotide.keys().__contains__(x):
+                z.append(nucleotide[x])
+                print(nucleotide[x])
             print(z)
             cls.set_some_gene(gene=z)
             return z
 
-    def encode_mrna(self, mrna):
-        mrna = self.some_mrna
+    def encode_mrna(self, some_mrna) -> [bytearray]:
+        some_mrna = self.some_mrna
+
+        # Assign each base a bit of information
+
+        a = [0, 0]
+        u = [0, 1]
+        g = [1, 0]
+        c = [1, 1]
+
+        nucleotides: dict = {
+            "A": a,
+            "U": u,
+            "G": g,
+            "C": c,
+        }
+
+        z = [bytearray]
+
+        #  for each of the letters in the genetic sequence...
+        for x in some_mrna:
+            if nucleotides.keys().__contains__(x):
+                z.append(nucleotides[x])
+                print(nucleotides[x])
+            print(z)
+            return z
+
 
     def encode_protein(self, protein):
         protein = self.some_protein
+
+        # Assign each base a bit of information
+
+        a = [0, 0]
+        u = [0, 1]
+        g = [1, 0]
+        c = [1, 1]
+
+        nucleotides: dict = {
+            "A": a,
+            "U": u,
+            "G": g,
+            "C": c,
+        }
+
+        dictionary_of_proteins: dict = {
+            "Alanine": "GCA" or "GCC" or "GCG" or "GCU",
+            "Arginine": "CGA" or "CGC" or "CGG" or "CGU",
+            "Asparagine": "AAC" or "AAU",
+            "Aspartic Acid": "GAC" or "GAU",
+            "Cysteine": "UGC" or "UGU",
+            "Glutamic Acid": "GAA" or "GAG",
+            "Glutamine": "CAA" or "CAG",
+            "Glycine": "GGA" or "GGC" or "GGG" or "GGU",
+            "Histidine": "CAC" or "CAU",
+            "Isoleucine": "AUA" or "AUC" or "AUU",
+            "Leucine": "UUA" or "UUG",
+            "Lysine": "AAA" or "AAG",
+            "Methionine": "AUG",
+            "Phenylalanine": "UUC" or "UUU",
+            "Proline": "CCA" or "CCC" or "CCG" or "CCU",
+            # Find the nucleotide sequence for "Pyrrolysine" : ,
+            # Find the nucleotide sequence for "Selenocysteine" : ,
+            "Serine": "AGC" or "AGU",
+            "Threonine": "ACA" "ACC" "ACG" "ACU",
+            "Tryptophan": "UGG",
+            "Tyrosine": "UAC" or "UAU",
+            "Valine": "GUA" or "GUC" or "GUG" or "GUU",
+            "Stop": "UAA" or "UAG" or "UGA"
+        }
+
+        z = []
+
+        for x in protein:
+            if nucleotides.keys().__contains__(x):
+                z.append(nucleotides[x])
+                print(nucleotides[x])
+            print(z)
+            return z
+
 
     @classmethod
     def predict_disease(cls, weight, bias, some_gene) -> list:
