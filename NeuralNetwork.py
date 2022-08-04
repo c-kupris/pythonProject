@@ -8,16 +8,16 @@ Entrez.email = "c.kupris@yahoo.com"
 
 
 class NeuralNetwork:
-    bias: float
+    bias: bytes
     disease: float
     iterations: int
-    some_gene: list[bytearray]
+    some_gene: str
     some_mrna: str
     some_protein: str
     target: float
     weight: float
 
-    def __init__(self, bias: float, iterations: int, weight: float):
+    def __init__(self, bias: bytes, iterations: int, weight: float):
         # define weights and biases
         numpy.random.seed(1)
 
@@ -26,17 +26,15 @@ class NeuralNetwork:
         self.weight = weight
 
     @classmethod
-    def set_some_gene(cls, gene: list[bytearray]) -> list[bytearray]:
-        cls.some_gene = gene
-        return gene
-
-    @classmethod
     def forward_propagation(cls, weight, bias) -> []:
         a = cls.encode_gene(some_gene=cls.some_gene)
         return numpy.matmul(weight, a) + bias
 
     @classmethod
-    def encode_gene(cls, some_gene) -> list[bytearray]:
+    def encode_gene(cls, some_gene) -> list:
+
+        cls.some_gene = some_gene
+
         # Assign each base a bit of information
 
         a = [0, 0]
@@ -59,11 +57,10 @@ class NeuralNetwork:
                 z.append(nucleotide[gene])
                 print(nucleotide[gene])
             print(z)
-            cls.set_some_gene(gene=z)
             return z
 
     @classmethod
-    def encode_mrna(cls, some_mrna) -> [bytearray]:
+    def encode_mrna(cls, some_mrna) -> list:
         cls.some_mrna = some_mrna
 
         # Assign each base a bit of information
@@ -91,7 +88,7 @@ class NeuralNetwork:
             return z
 
     @classmethod
-    def encode_protein(cls, protein) -> [bytearray]:
+    def encode_protein(cls, protein) -> list:
         cls.some_protein = protein
 
         # Assign each base a bit of information
@@ -152,7 +149,7 @@ class NeuralNetwork:
         predictor_protein = cls.encode_protein(protein=some_protein)
 
         weighted_network = (predictor_rna * weight) + (predictor_dna * weight) + (predictor_protein * weight)
-        biased_weighted_network = bias + weighted_network
+        biased_weighted_network = list(bytearray(bias)) + weighted_network
         return biased_weighted_network
 
     # layer 1
@@ -207,7 +204,7 @@ class NeuralNetwork:
 
     @classmethod
     def layer_3(cls, bias, weight) -> float:
-        _y = cls.layer_2(cls, numpy.dot(cls.encode_gene(cls.some_gene), weight))
+        _y: float = cls.layer_2(cls, numpy.dot(weight, cls.encode_gene(cls.some_gene)))
         a = cls.line(weight * _y) + bias
         print(a)
         return a
@@ -236,10 +233,10 @@ class NeuralNetwork:
                 cls.predict_disease(weight=cls.weight, bias=cls.bias, some_gene=cls.some_gene, some_mrna=cls.some_mrna,
                                     some_protein=cls.some_protein))) * \
                            1 / (numpy.cosh(cls.predict_disease(weight=cls.weight,
-                                                                bias=cls.bias,
-                                                                some_gene=cls.some_gene,
-                                                                some_mrna=cls.some_mrna,
-                                                                some_protein=cls.some_protein)))
+                                                               bias=cls.bias,
+                                                               some_gene=cls.some_gene,
+                                                               some_mrna=cls.some_mrna,
+                                                               some_protein=cls.some_protein)))
             return dtanh_dx_neg * cls.predict_disease(weight=cls.weight, bias=cls.bias, some_gene=cls.some_gene,
                                                       some_mrna=cls.some_mrna, some_protein=cls.some_protein)
 
@@ -291,7 +288,6 @@ class NeuralNetwork:
             if cls.layer_3(cls, weight=cls.weight) != cls.target:
                 cls.back_propagation(weight=cls.weight, bias=cls.bias)
                 _ = _ + 1
-                return cls.target
 
             elif cls.layer_3(cls, weight=cls.weight) == cls.target:
                 return cls.target
@@ -318,6 +314,7 @@ class NeuralNetwork:
                                                                                    'Secondary Structure' or
                                                                                    'Three Letter Protein'):
                 Entrez.parse(handle=gene, validate=True, escape=True)
+                cls.some_gene = gene
 
             for some_mrna in SeqIO.index(filename=handle.read(), format='xml', alphabet='Single Letter Alphabet' or
                                                                                         'Nucleotide Alphabet' or
@@ -326,6 +323,7 @@ class NeuralNetwork:
                                                                                         'Protein Alphabet'):
 
                 if index.contains(some_mrna):
+                    cls.some_mrna = some_mrna
                     cls.train()
 
                 for protein in SeqIO.index(filename=handle.read(), format='xml', alphabet='RNA alphabet' or
@@ -334,6 +332,7 @@ class NeuralNetwork:
                                                                                           'Secondary Structure'):
 
                     if index.contains(protein):
+                        cls.some_protein = protein
                         cls.train()
 
         second_handle = Entrez.esearch(db='GenBank', term=disease)
@@ -357,6 +356,7 @@ class NeuralNetwork:
 
                 Entrez.parse(handle=second_gene, validate=True, escape=True)
                 second_gene_sequence = second_gene.seq
+                cls.some_gene = second_gene_sequence
 
                 if second_gene_sequence.contains(second_record):
                     cls.train()
@@ -389,6 +389,7 @@ class NeuralNetwork:
 
                 Entrez.parse(third_gene, validate=True, escape=True)
                 third_gene_sequence = third_gene.seq
+                cls.some_gene = third_gene_sequence
 
                 if third_gene_sequence.contains(third_record):
                     cls.train()
@@ -400,12 +401,12 @@ class NeuralNetwork:
                     cls.train()
 
 
-neural_network = NeuralNetwork(bias=0.02, iterations=1000, weight=0.05)
+neural_network = NeuralNetwork(bias=bytes(2), iterations=1000, weight=5)
 
-x = list[range(0, neural_network.iterations, 1)]
+x = numpy.arange(start=0, stop=neural_network.iterations, step=1)
 print(x)
 
-y = neural_network.target
+y = neural_network.layer_3(bias=neural_network.bias, weight=neural_network.weight)
 print(y)
 
 plt.plot(x, y)
