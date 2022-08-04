@@ -17,7 +17,7 @@ class NeuralNetwork:
     target: float
     weight: float
 
-    def __init__(self, bias: bytes, iterations: int, weight: float, target: float):
+    def __init__(self, bias: bytes, iterations: int, target: float, weight: float):
         # define weights and biases
         numpy.random.seed(1)
 
@@ -282,18 +282,17 @@ class NeuralNetwork:
             return 0
 
     @classmethod
-    def update(cls, target_to_update: float) -> float:
+    def update(cls, _: float) -> float:
 
-        cls.target = target_to_update
         for _ in numpy.arange(start=0, stop=cls.iterations, step=1):
             weighted_gene = cls.weight * cls.encode_gene(cls.some_gene)[_]
             weighted_mrna = cls.weight * cls.encode_mrna(cls.some_mrna)[_]
             weighted_protein = cls.weight * cls.encode_protein(cls.some_protein)[_]
-            target_to_update = (cls.weight * weighted_gene) + (cls.weight * weighted_mrna) + \
-                               (cls.weight * weighted_protein)
-            print(target_to_update)
-            cls.target = target_to_update
-            return target_to_update
+            _ = (cls.weight * weighted_gene) + (cls.weight * weighted_mrna) + \
+                (cls.weight * weighted_protein)
+            print(_)
+            cls.target = _
+            return _
 
     @classmethod
     def update_weight(cls, weight_to_update: float) -> float:
@@ -451,7 +450,7 @@ class NeuralNetwork:
                     cls.update_weight(cls.target)
 
 
-# "iterations" and "target" have to have the same array size so they map 1-to-1 and you can graph them
+# "x" and "y" have to have the same array size, so they map 1-to-1, and you can graph them
 
 neural_network = NeuralNetwork(bias=bytes(2), iterations=1000, target=1000, weight=0.1)
 
