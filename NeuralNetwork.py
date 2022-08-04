@@ -451,7 +451,7 @@ class NeuralNetwork:
                     cls.update_weight(cls.target)
 
 
-neural_network = NeuralNetwork(bias=bytes(2), iterations=100, target=1000, weight=0.1)
+neural_network = NeuralNetwork(bias=bytes(2), iterations=1000, target=1000, weight=0.1)
 
 x = numpy.arange(start=0, stop=neural_network.iterations, step=1)
 
