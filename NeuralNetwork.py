@@ -284,6 +284,7 @@ class NeuralNetwork:
     @classmethod
     def update(cls, target_to_update: float) -> float:
 
+        cls.target = target_to_update
         for _ in numpy.arange(start=0, stop=cls.iterations, step=1):
             weighted_gene = cls.weight * cls.encode_gene(cls.some_gene)[_]
             weighted_mrna = cls.weight * cls.encode_mrna(cls.some_mrna)[_]
@@ -294,6 +295,17 @@ class NeuralNetwork:
             cls.target = target_to_update
             return target_to_update
 
+    @classmethod
+    def update_weight(cls, weight_to_update: float) -> float:
+
+        for _ in numpy.arange(start=0, stop=cls.iterations, step=1):
+            for handle in Entrez.esearch(db="NIH" or "GenBank" or "PubMed", term=cls.some_gene or cls.some_mrna or cls.some_protein):
+                if handle.__contains__(cls.some_gene or cls.some_mrna or cls.some_protein):
+                    weight_to_update = weight_to_update + 0.001
+
+        cls.weight = weight_to_update
+        return weight_to_update
+
     # training the network
 
     @classmethod
@@ -301,7 +313,8 @@ class NeuralNetwork:
         for _ in numpy.array(p_object=cls.iterations):
             if cls.layer_3(cls, weight=cls.weight) != cls.target:
                 cls.back_propagation(weight=cls.weight, bias=cls.bias)
-                cls.update(target_to_update=cls.target)
+                cls.update(cls.target)
+                cls.update_weight(cls.weight)
                 _ = _ + 1
 
             elif cls.layer_3(cls, weight=cls.weight) == cls.target:
@@ -331,6 +344,7 @@ class NeuralNetwork:
                 Entrez.parse(handle=gene, validate=True, escape=True)
                 cls.some_gene = gene
                 cls.update(cls.target)
+                cls.update_weight(cls.weight)
 
             for some_mrna in SeqIO.index(filename=handle.read(), format='xml', alphabet='Single Letter Alphabet' or
                                                                                         'Nucleotide Alphabet' or
@@ -342,6 +356,7 @@ class NeuralNetwork:
                     cls.some_mrna = some_mrna
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
                 for protein in SeqIO.index(filename=handle.read(), format='xml', alphabet='RNA alphabet' or
                                                                                           'Single Letter Alphabet' or
@@ -352,6 +367,7 @@ class NeuralNetwork:
                         cls.some_protein = protein
                         cls.train()
                         cls.update(cls.target)
+                        cls.update_weight(cls.target)
 
         second_handle = Entrez.esearch(db='GenBank', term=disease)
 
@@ -376,18 +392,22 @@ class NeuralNetwork:
                 second_gene_sequence = second_gene.seq
                 cls.some_gene = second_gene_sequence
                 cls.update(cls.target)
+                cls.update_weight(cls.target)
 
                 if second_gene_sequence.contains(second_record):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
                 if second_gene_sequence.contains(cls.some_mrna) or second_record.contains(cls.some_mrna):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
                 if second_gene_sequence.contains(cls.some_protein) or second_record.contains(cls.some_protein):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
         third_handle = Entrez.esearch(db='NIH', term=disease)
 
@@ -413,18 +433,22 @@ class NeuralNetwork:
                 third_gene_sequence = third_gene.seq
                 cls.some_gene = third_gene_sequence
                 cls.update(cls.target)
+                cls.update_weight(cls.target)
 
                 if third_gene_sequence.contains(third_record):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
                 if third_gene_sequence.contains(cls.some_mrna):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
                 if third_gene_sequence.contains(cls.some_protein):
                     cls.train()
                     cls.update(cls.target)
+                    cls.update_weight(cls.target)
 
 
 neural_network = NeuralNetwork(bias=bytes(2), iterations=10, target=0.1, weight=5)
