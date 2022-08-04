@@ -451,6 +451,8 @@ class NeuralNetwork:
                     cls.update_weight(cls.target)
 
 
+# "iterations" and "target" have to have the same array size so they map 1-to-1 and you can graph them
+
 neural_network = NeuralNetwork(bias=bytes(2), iterations=1000, target=1000, weight=0.1)
 
 x = numpy.arange(start=0, stop=neural_network.iterations, step=1)
