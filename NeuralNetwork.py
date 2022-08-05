@@ -302,7 +302,7 @@ class NeuralNetwork:
     def update_weight(cls, weight_to_update: float) -> float:
 
         for _ in numpy.arange(start=0, stop=cls.iterations, step=1):
-            for handle in Entrez.esearch(db="NIH" or "GenBank" or "PubMed", term=cls.some_gene or cls.some_mrna or cls.some_protein):
+            for handle in Entrez.esearch(db="gap" or "nuccore" or "pubmed", term=cls.some_gene or cls.some_mrna or cls.some_protein):
                 if handle.__contains__(cls.some_gene or cls.some_mrna or cls.some_protein):
                     weight_to_update = weight_to_update + 0.001
 
@@ -327,8 +327,7 @@ class NeuralNetwork:
 
     @classmethod
     def search(cls, disease: str) -> str:
-        handle = \
-            Entrez.esearch(db="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome", term=disease)
+        handle = Entrez.esearch(db="gap", term=disease)
         cls.disease = disease
         for index in SeqIO.parse(handle, format='xml', alphabet='DNA alphabet' or
                                                                 'RNA alphabet' or
@@ -364,6 +363,8 @@ class NeuralNetwork:
                     cls.train()
                     cls.update(cls)
                     cls.update_weight(cls.weight)
+                    handle.read()
+                    handle.parse()
                     return some_mrna
 
             for protein in SeqIO.index(filename=handle.read(), format='xml', alphabet='RNA alphabet' or
@@ -376,9 +377,13 @@ class NeuralNetwork:
                     cls.train()
                     cls.update(cls)
                     cls.update_weight(cls.weight)
+                    handle.read()
+                    handle.parse()
                     return protein
 
-        second_handle = Entrez.esearch(db="https://www.ncbi.nlm.nih.gov/genbank/", term=cls.disease)
+        handle.close()
+
+        second_handle = Entrez.esearch(db="nuccore", term=cls.disease)
 
         for second_handle in SeqIO.parse(handle=second_handle, format='xml', alphabet='DNA alphabet' or
                                                                                     'RNA alphabet' or
@@ -399,6 +404,8 @@ class NeuralNetwork:
             cls.train()
             cls.update(cls)
             cls.update_weight(cls.weight)
+            second_handle.read()
+            second_handle.parse()
             return second_handle.parse()
 
 
@@ -406,16 +413,22 @@ class NeuralNetwork:
             cls.train()
             cls.update(cls)
             cls.update_weight(cls.weight)
-            return second_handle.parse() or cls.some_mrna
+            second_handle.read()
+            second_handle.parse()
+            return cls.some_mrna
 
 
         if second_handle.contains(cls.some_protein) or second_handle.contains(cls.some_protein):
             cls.train()
             cls.update(cls)
             cls.update_weight(cls.weight)
-            return second_handle.parse() or cls.some_protein
+            second_handle.read()
+            second_handle.parse()
+            return cls.some_protein
 
-        third_handle = Entrez.esearch(db="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome", term=disease)
+        second_handle.close()
+
+        third_handle = Entrez.esearch(db="pubmed", term=disease)
 
         for third_gene in SeqIO.parse(handle=third_handle,
                                       format='xml',
@@ -446,6 +459,8 @@ class NeuralNetwork:
                     cls.update(cls)
                     cls.update_weight(cls.weight)
                     cls.some_gene = third_gene_sequence
+                    third_handle.read()
+                    third_handle.parse()
                     return cls.some_gene
 
                 elif third_record.contains(cls.some_mrna):
@@ -453,6 +468,8 @@ class NeuralNetwork:
                     cls.update(cls)
                     cls.update_weight(cls.weight)
                     cls.some_mrna = third_record
+                    third_handle.read()
+                    third_handle.parse()
                     return cls.some_mrna
 
                 else:
@@ -460,8 +477,11 @@ class NeuralNetwork:
                     cls.update(cls)
                     cls.update_weight(cls.weight)
                     cls.some_protein = third_gene_sequence
+                    third_handle.read()
+                    third_handle.parse()
                     return cls.some_protein
 
+            third_handle.close()
 
 # "x" and "y" have to have the same array size, so they map 1-to-1, and you can graph them
 
@@ -478,6 +498,8 @@ y = numpy.arange(start=0, stop=(neural_network.update(cls=NeuralNetwork(bias=neu
                                                                         weight=neural_network.weight)) + 1), step=1)
 
 print(y)
+
+plt.grid(visible=True, which='major', axis='both')
 
 plt.xlabel("Iterations")
 plt.ylabel("Target")
